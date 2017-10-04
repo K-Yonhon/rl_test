@@ -8,6 +8,8 @@ https://stats.stackexchange.com/questions/243384/deriving-bellmans-equation-in-r
 
 https://www.reddit.com/r/reinforcementlearning/comments/4puel5/derivation_of_the_bellman_equation_for_values/
 
+https://www.youtube.com/watch?v=CTPHADvQxSs
+
 $$
 \begin{align}
 \mathcal{P}_{ss'}^{a} &= Pr\{s_{t+1} = s' | s_t = s, a_t = a \} \\
@@ -31,12 +33,22 @@ E \{\gamma ( r_{t+2} + \gamma r_{t+3} + \cdots ) | s_t = s \} \\
 &= \gamma E \{R_{t+1} | s_t = s \} \\
 
 &= \gamma E \{E \{R_{t+1}| s_t=s'\} | s_t = s \} \\
-&= \gamma E \{E \{R_{t+1}| s_t=s'\} | s_t = s \} \\
+&= \gamma E \{V^{\pi}_{s'} | s_t = s \} \\
 
 &= \gamma \sum_{a \in \mathcal{A}(s)} \sum_{s' \in \mathcal{S}}(E \{R_{t+1} | s_{t+1} = s',  a_t = a, s_t = s \} )
 \end{align}
 $$
 
+$$
+\begin{align}
+V^{\pi}_s &= E \{ R_t | s_t = s \} \\
+&= E \{ r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \cdots | s_t = s \} \\
+&= E \{ r_{t+1} + \gamma ( r_{t+2} + \gamma r_{t+3} + \cdots ) | s_t = s \} \\
+
+&= \sum_{a \in \mathcal{A}(s)} \pi(s, a) ( \sum_{s' \in \mathcal{S}} \mathcal{P}^a_{ss'} ( \mathcal{R}^a_{ss'} + \gamma E \{  R_{t+1} | s_{t+1} = s' \} ) ) \\
+&= \sum_{a \in \mathcal{A}(s)} \pi(s, a) ( \sum_{s' \in \mathcal{S}} \mathcal{P}^a_{ss'} ( \mathcal{R}^a_{ss'} + \gamma V^{\pi}_{s'} ) )
+\end{align}
+$$
 
 <br>
 
