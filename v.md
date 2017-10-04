@@ -28,12 +28,14 @@ $$
 \begin{align}
 E \{\gamma ( r_{t+2} + \gamma r_{t+3} + \cdots ) | s_t = s \} \\
 &= \gamma E \{r_{t+2} + \gamma r_{t+3} + \cdots | s_t = s \} \\
-&= \gamma E \{R_{t+1} | s_{t+1} = s', s_t = s \} \\
+&= \gamma E \{R_{t+1} | s_t = s \} \\
+
+&= \gamma E \{E \{R_{t+1}| s_t=s'\} | s_t = s \} \\
+&= \gamma E \{E \{R_{t+1}| s_t=s'\} | s_t = s \} \\
+
 &= \gamma \sum_{a \in \mathcal{A}(s)} \sum_{s' \in \mathcal{S}}(E \{R_{t+1} | s_{t+1} = s',  a_t = a, s_t = s \} )
 \end{align}
 $$
-
-
 
 
 <br>
