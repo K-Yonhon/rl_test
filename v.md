@@ -10,6 +10,10 @@ https://www.reddit.com/r/reinforcementlearning/comments/4puel5/derivation_of_the
 
 https://www.youtube.com/watch?v=CTPHADvQxSs
 
+http://www.math.chs.nihon-u.ac.jp/~mori/Lecture_Notes/probability1.pdf
+https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q10129632045
+http://www.math.s.chiba-u.ac.jp/~yasuda/statB/expect-expl.pdf
+
 $$
 \begin{align}
 \mathcal{P}_{ss'}^{a} &= Pr\{s_{t+1} = s' | s_t = s, a_t = a \} \\
