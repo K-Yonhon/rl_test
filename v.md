@@ -14,6 +14,10 @@ http://www.math.chs.nihon-u.ac.jp/~mori/Lecture_Notes/probability1.pdf
 https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q10129632045
 http://www.math.s.chiba-u.ac.jp/~yasuda/statB/expect-expl.pdf
 
+http://data.gunosy.io/entry/gunosy-data-mining-20170412
+http://cookie-box.hatenablog.com/entry/2016/04/03/193434
+https://www.slideshare.net/keisukeosone/gunosy-118
+
 $$
 \begin{align}
 \mathcal{P}_{ss'}^{a} &= Pr\{s_{t+1} = s' | s_t = s, a_t = a \} \\
