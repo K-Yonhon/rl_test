@@ -11,6 +11,7 @@ https://www.reddit.com/r/reinforcementlearning/comments/4puel5/derivation_of_the
 https://www.youtube.com/watch?v=CTPHADvQxSs
 
 http://www.math.chs.nihon-u.ac.jp/~mori/Lecture_Notes/probability1.pdf
+http://math.arizona.edu/~tgk/464_07/cond_exp.pdf
 https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q10129632045
 http://www.math.s.chiba-u.ac.jp/~yasuda/statB/expect-expl.pdf
 
