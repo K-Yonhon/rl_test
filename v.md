@@ -21,6 +21,8 @@ https://www.slideshare.net/keisukeosone/gunosy-118
 
 http://www.mbs.med.kyoto-u.ac.jp/cortex/15_td_learning.pdf
 
+https://www.google.co.jp/search?q=Reinforcement+Learning+%E2%80%8EApproximate+%E2%80%8Elinear&client=firefox-b&dcr=0&gbv=1&prmd=ivns&ei=B5PpWZmuGMPW8QWC5pLoCg&start=40&sa=N
+
 $$
 \begin{align}
 \mathcal{P}_{ss'}^{a} &= Pr\{s_{t+1} = s' | s_t = s, a_t = a \} \\
