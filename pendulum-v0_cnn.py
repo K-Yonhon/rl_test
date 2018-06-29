@@ -6,10 +6,11 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, Reshape, Conv2D, MaxPooling2D
 from keras.optimizers import Adam
 from rl.agents.dqn import DQNAgent
-from rl.policy import BoltzmannQPolicy
+from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from PIL import Image, ImageDraw
 import numpy as np
+from keras.callbacks import TensorBoard
 
 
 # GymのPendulum環境を作成
@@ -19,13 +20,15 @@ env = gym.make("Pendulum-v0")
 nb_actions = 2
 ACT_ID_TO_VALUE = {0: [-1], 1: [+1]}
 
-img_size = 128
+# img_size = 128
+img_size = 48
 channel = 3
 
 
 class PendulumProcessor(Processor):
     def __init__(self):
         self.rgb_state = np.zeros((img_size, img_size, channel))
+        self.cnt = 0
 
     # Duel-DQNの出力と、Gym環境の入力の違いを吸収
     def process_action(self, action):
@@ -55,9 +58,13 @@ class PendulumProcessor(Processor):
         dr.line(((h_size - l * state[1], h_size - l * state[0]), (h_size, h_size)), (0, 0, 0), 1)
 
         # 棒の中心の円を描写（それっぽくしてみた）
-        buff = img_size/32.0
+        # buff = img_size/32.0
+        buff = img_size /(img_size/3.0)
         dr.ellipse(((h_size - buff, h_size - buff), (h_size + buff, h_size + buff)),
                    outline=(0, 0, 0), fill=(255, 0, 0))
+
+        # img.save('./tmp/lenna_changed_{0}.png'.format(self.cnt))
+        # self.cnt+=1
 
         # 画像の一次元化（GrayScale化）とarrayへの変換
         pilImg = img.convert("L")
@@ -75,21 +82,33 @@ class PendulumProcessor(Processor):
 
         # アルゴリズムの状態入力として、画像を用いる（過去３フレームを入力する）
         # 直近の状態に対応する画像を作成
-        self.rgb_state[:, :, 0] = self.self._get_rgb_state(observation)
+        # mm = self._get_rgb_state(observation)
+        self.rgb_state[:, :, 0] = self._get_rgb_state(observation)
         # 過去２フレームも保持
         for i in range(1, channel):
             self.rgb_state[:, :, i] = old_rgb_state[:, :, i-1] # shift old state
+            # self.rgb_state[:, :, i] = np.copy(old_rgb_state[:, :, i - 1]) # shift old state
 
         # アルゴリズムへの報酬として、設定課題に沿った報酬を用いる（上記通り）
         reward = self.process_reward(reward)
 
         return self.rgb_state, reward, done, info
 
+    def process_observation(self, observation):
+        return self.rgb_state
+
+    # def process_state_batch(self, batch):
+    #     # processed_batch = batch.astype('float32') / 255.
+    #     # return processed_batch
+    #     return np.zeros((1,128,128,3))
+
+
 
 processor = PendulumProcessor()
 
 # 画像の特徴量抽出ネットワークのパラメタ
-n_filters = 32
+# n_filters = 32
+n_filters = 16
 kernel = (3, 3)
 strides = (2, 2)
 
@@ -110,7 +129,8 @@ model.add(Dense(nb_actions, activation="linear"))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
 memory = SequentialMemory(limit=50000, window_length=1)
-policy = BoltzmannQPolicy()
+# policy = BoltzmannQPolicy()
+policy = EpsGreedyQPolicy(eps=0.3)
 
 # Duel-DQNのAgentクラスオブジェクトの準備 （上記processorやmodelを元に）
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
@@ -119,12 +139,13 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
 dqn.compile(Adam(lr=1e-3), metrics=["mae"])
 print(dqn.model.summary())
 
+tb = TensorBoard(log_dir='./logs_cnn')
 # 定義課題環境に対して、アルゴリズムの学習を実行 （必要に応じて適切なCallbackも定義、設定可能）
 # 上記Processorクラスの適切な設定によって、Agent-環境間の入出力を通して設計課題に対しての学習が進行
-dqn.fit(env, nb_steps=100000, visualize=False, verbose=2)
+dqn.fit(env, nb_steps=100000, visualize=False, verbose=2, callbacks=[tb])
 
 # 学習後のモデルの重みの出力
-dqn.save_weights("duel_dqn_{}_weights.h5f".format("Pendulum-v0"), overwrite=True)
+dqn.save_weights("duel_dqn_{}_weights.h5f".format("Pendulum-v0_cnn"), overwrite=True)
 
 # 学習済モデルに対して、テストを実行 （必要に応じて適切なCallbackも定義、設定可能）
 dqn.test(env, nb_episodes=100, visualize=True)
