@@ -63,7 +63,7 @@ print(dqn.model.summary())
 tb = TensorBoard()
 # 定義課題環境に対して、アルゴリズムの学習を実行 （必要に応じて適切なCallbackも定義、設定可能）
 # 上記Processorクラスの適切な設定によって、Agent-環境間の入出力を通して設計課題に対しての学習が進行
-dqn.fit(env, nb_steps=100000, visualize=False, verbose=2, callbacks=[tb])
+dqn.fit(env, nb_steps=100000, visualize=True, verbose=2, callbacks=[tb])
 
 # 学習後のモデルの重みの出力
 dqn.save_weights("duel_dqn_{}_weights.h5f".format("Pendulum-v0"), overwrite=True)
