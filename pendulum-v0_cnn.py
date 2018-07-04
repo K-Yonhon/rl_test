@@ -48,7 +48,7 @@ class PendulumProcessor(Processor):
         elif reward > -1.0:
             return 0
         else:
-            return 0
+            return reward
 
     # 状態（x,y座標）から対応画像を描画する関数
     def _get_rgb_state(self, state):
@@ -64,7 +64,7 @@ class PendulumProcessor(Processor):
         # 棒のラインの描写
         dr.line(((h_size - l * state[1], h_size - l * state[0]), (h_size, h_size)),
                 (0, 0, 0),
-                1)
+                2)
 
         # 棒の中心の円を描写（それっぽくしてみた）
         # buff = img_size/32.0
@@ -81,7 +81,7 @@ class PendulumProcessor(Processor):
         img_arr = np.asarray(pilImg)
 
         # 画像の規格化
-        img_arr = img_arr/255.0
+        img_arr = 1.-img_arr/255.0
 
         return img_arr
 
@@ -140,12 +140,12 @@ model = Sequential()
 model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
 model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
 # model.add(Dropout(0.2))
 # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 # 以前と同様の2層FCのQ関数ネットワーク
 # model.add(Dense(16, activation="relu"))
@@ -155,20 +155,20 @@ model.add(Dense(16, activation="relu"))
 model.add(Dense(nb_actions, activation="linear"))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
-memory = SequentialMemory(limit=1000, window_length=channel)
+memory = SequentialMemory(limit=10000, window_length=channel)
 policy = BoltzmannQPolicy()
 # policy = EpsGreedyQPolicy(eps=0.2)
 
 # Duel-DQNのAgentクラスオブジェクトの準備 （上記processorやmodelを元に）
-dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100,
                enable_dueling_network=True,
                dueling_type="avg",
                # dueling_type="max",
-               # target_model_update=100,
+               target_model_update=1e-2,
                batch_size=64,
                policy=policy,
                processor=processor)
-dqn.compile(Adam(lr=1e-3), metrics=["mae"])
+dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=["mae"])
 print(dqn.model.summary())
 
 # dqn.load_weights("duel_dqn_Pendulum-v0_cnn_weights.h5f")
