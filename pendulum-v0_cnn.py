@@ -1,9 +1,11 @@
 # coding=utf-8
 
+import os
+import random as rn
 import gym
 from rl.core import Processor
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Reshape, Conv2D, MaxPooling2D, Permute
+from keras.layers import Dense, Activation, Flatten, Reshape, Conv2D, MaxPooling2D, Permute, Dropout
 from keras.optimizers import Adam
 from rl.agents.dqn import DQNAgent
 from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
@@ -16,12 +18,17 @@ from keras.callbacks import TensorBoard
 # GymのPendulum環境を作成
 env = gym.make("Pendulum-v0")
 
+os.environ['PYTHONHASHSEED'] = '0'
+np.random.seed(7)
+rn.seed(7)
+env.seed(7)
+
 # 取りうる”打ち手”のアクション数と値の定義
 nb_actions = 2
 ACT_ID_TO_VALUE = {0: [-1], 1: [+1]}
 
 # img_size = 128
-img_size = 64
+img_size = 32
 channel = 3
 
 
@@ -52,14 +59,16 @@ class PendulumProcessor(Processor):
         dr = ImageDraw.Draw(img)
 
         # 棒の長さ
-        l = img_size/4.0 * 3.0/ 2.0
+        l = img_size/4.0 * 3.0/ 1.5
 
         # 棒のラインの描写
-        dr.line(((h_size - l * state[1], h_size - l * state[0]), (h_size, h_size)), (0, 0, 0), 1)
+        dr.line(((h_size - l * state[1], h_size - l * state[0]), (h_size, h_size)),
+                (0, 0, 0),
+                1)
 
         # 棒の中心の円を描写（それっぽくしてみた）
         # buff = img_size/32.0
-        buff = img_size /(img_size/3.0)
+        buff = img_size /(img_size/2.0)
         dr.ellipse(((h_size - buff, h_size - buff), (h_size + buff, h_size + buff)),
                    outline=(0, 0, 0), fill=(255, 0, 0))
 
@@ -94,6 +103,7 @@ class PendulumProcessor(Processor):
         # reward = self.process_reward(reward)
         # return self.rgb_state, reward, done, info
         reward = self.process_reward(reward)
+        # return self._get_rgb_state(observation), reward, done, info
         return self._get_rgb_state(observation), reward, done, info
 
     def process_observation(self, observation):
@@ -119,8 +129,8 @@ class PendulumProcessor(Processor):
 processor = PendulumProcessor()
 
 # 画像の特徴量抽出ネットワークのパラメタ
-n_filters = 32
-# n_filters = 16
+# n_filters = 32
+n_filters = 16
 kernel = (3, 3)
 strides = (2, 2)
 
@@ -130,32 +140,48 @@ model = Sequential()
 model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
 model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
+model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
+# model.add(Dropout(0.2))
+# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 # 以前と同様の2層FCのQ関数ネットワーク
-model.add(Dense(16, activation="relu"))
+# model.add(Dense(16, activation="relu"))
+# model.add(Dropout(0.2))
+# model.add(Dense(16, activation="relu"))
 model.add(Dense(16, activation="relu"))
 model.add(Dense(nb_actions, activation="linear"))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
-memory = SequentialMemory(limit=50000, window_length=channel)
+memory = SequentialMemory(limit=1000, window_length=channel)
 policy = BoltzmannQPolicy()
 # policy = EpsGreedyQPolicy(eps=0.2)
 
 # Duel-DQNのAgentクラスオブジェクトの準備 （上記processorやmodelを元に）
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
-               enable_dueling_network=True, dueling_type="avg", target_model_update=1e-2, policy=policy,
+               enable_dueling_network=True,
+               dueling_type="avg",
+               # dueling_type="max",
+               # target_model_update=100,
+               batch_size=64,
+               policy=policy,
                processor=processor)
 dqn.compile(Adam(lr=1e-3), metrics=["mae"])
 print(dqn.model.summary())
 
+# dqn.load_weights("duel_dqn_Pendulum-v0_cnn_weights.h5f")
+
 tb = TensorBoard(log_dir='./logs')
 # 定義課題環境に対して、アルゴリズムの学習を実行 （必要に応じて適切なCallbackも定義、設定可能）
 # 上記Processorクラスの適切な設定によって、Agent-環境間の入出力を通して設計課題に対しての学習が進行
-dqn.fit(env, nb_steps=500000, visualize=True, verbose=2, callbacks=[tb])
+dqn.fit(env, nb_steps=100000,
+        nb_max_episode_steps=300,
+        visualize=True, verbose=2, callbacks=[tb])
+
+json_string = model.to_json()
+open('cnn_model.json', 'w').write(json_string)
 
 # 学習後のモデルの重みの出力
 dqn.save_weights("duel_dqn_{}_weights.h5f".format("Pendulum-v0_cnn"), overwrite=True)

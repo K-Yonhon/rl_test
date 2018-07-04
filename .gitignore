@@ -107,4 +107,5 @@ tmp/
 
 log/
 logs/
+*.lnk
 *.h5f
