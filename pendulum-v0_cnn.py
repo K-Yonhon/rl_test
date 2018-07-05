@@ -35,7 +35,7 @@ ACT_ID_TO_VALUE = {0: [-1], 1: [+1]}
 
 # img_size = 128
 img_size = 32
-channel = 3
+channel = 4
 
 
 class PendulumProcessor(Processor):
@@ -50,11 +50,11 @@ class PendulumProcessor(Processor):
     # Gym環境の報酬の出力と、Duel-DQNの報酬の入力との違いを吸収
     def process_reward(self, reward):
         if reward > -0.2:
-            return 1
+            return 10
         elif reward > -1.0:
-            return 0
+            return 1
         else:
-            return reward/20.
+            return reward/3.
 
     # 状態（x,y座標）から対応画像を描画する関数
     def _get_rgb_state(self, state):
@@ -70,7 +70,7 @@ class PendulumProcessor(Processor):
         # 棒のラインの描写
         dr.line(((h_size - l * state[1], h_size - l * state[0]), (h_size, h_size)),
                 (0, 0, 0),
-                2)
+                1)
 
         # 棒の中心の円を描写（それっぽくしてみた）
         # buff = img_size/32.0
@@ -135,8 +135,8 @@ class PendulumProcessor(Processor):
 processor = PendulumProcessor()
 
 # 画像の特徴量抽出ネットワークのパラメタ
-# n_filters = 32
-n_filters = 8
+n_filters = 32
+# n_filters = 16
 kernel = (3, 3)
 strides = (2, 2)
 
@@ -165,22 +165,22 @@ model = Sequential()
 # model.add(Reshape((img_size, img_size, channel), input_shape=(1, img_size, img_size, channel)))
 model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
 
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", use_bias=False))
-model.add(BatchNormalization())
+model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
+# model.add(BatchNormalization())
 model.add(Activation('relu'))
 
-model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", use_bias=False))
-model.add(BatchNormalization())
+model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
+# model.add(BatchNormalization())
 model.add(Activation('relu'))
-
-model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+# model.add(MaxPooling2D(pool_size=(2, 2)))
 # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 # model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
 # model.add(Dropout(0.2))
-model.add(Conv2D(n_filters, kernel, padding="same", use_bias=False))
-model.add(BatchNormalization())
+model.add(Conv2D(n_filters, kernel, padding="same"))
+# model.add(BatchNormalization())
 model.add(Activation('relu'))
 
 # model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -190,17 +190,20 @@ model.add(Flatten())
 # model.add(Dense(16, activation="relu"))
 # model.add(Dropout(0.2))
 # model.add(Dense(16, activation="relu"))
-model.add(Dense(16, use_bias=False))
-model.add(BatchNormalization())
+model.add(Dense(32))
+# model.add(Dense(16, use_bias=False))
+# model.add(BatchNormalization())
 model.add(Activation('relu'))
 
-model.add(Dense(16, use_bias=False))
-model.add(BatchNormalization())
+model.add(Dense(16))
+# model.add(Dense(16, use_bias=False))
+# model.add(BatchNormalization())
 model.add(Activation('relu'))
 
 # model.add(Dense(nb_actions, activation="linear"))
-model.add(Dense(nb_actions, use_bias=False))
-model.add(BatchNormalization())
+model.add(Dense(nb_actions))
+# model.add(Dense(nb_actions, use_bias=False))
+# model.add(BatchNormalization())
 model.add(Activation('linear'))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
@@ -214,7 +217,7 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
                dueling_type="avg",
                # dueling_type="max",
                target_model_update=1e-2,
-               batch_size=64,
+               batch_size=32,
                policy=policy,
                processor=processor)
 dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=["mae"])
