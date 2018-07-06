@@ -52,9 +52,9 @@ class PendulumProcessor(Processor):
         if reward > -0.2:
             return 10
         elif reward > -1.0:
-            return 1
+            return 0
         else:
-            return reward/3.
+            return reward/10.
 
     # 状態（x,y座標）から対応画像を描画する関数
     def _get_rgb_state(self, state):
@@ -217,7 +217,7 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
                dueling_type="avg",
                # dueling_type="max",
                target_model_update=1e-2,
-               batch_size=32,
+               # batch_size=32,
                policy=policy,
                processor=processor)
 dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=["mae"])
@@ -229,7 +229,7 @@ tb = TensorBoard(log_dir='./logs')
 # 定義課題環境に対して、アルゴリズムの学習を実行 （必要に応じて適切なCallbackも定義、設定可能）
 # 上記Processorクラスの適切な設定によって、Agent-環境間の入出力を通して設計課題に対しての学習が進行
 dqn.fit(env, nb_steps=100000,
-        nb_max_episode_steps=300,
+        # nb_max_episode_steps=300,
         visualize=True, verbose=2, callbacks=[tb])
 
 json_string = model.to_json()
