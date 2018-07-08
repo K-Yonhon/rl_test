@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.optimizers import Adam
 from rl.agents.dqn import DQNAgent
-from rl.policy import BoltzmannQPolicy
+from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from keras.callbacks import TensorBoard
 
@@ -26,13 +26,20 @@ class PendulumProcessor(Processor):
         return ACT_ID_TO_VALUE[action]
 
     # Gym環境の報酬の出力と、Duel-DQNの報酬の入力との違いを吸収
+    # def process_reward(self, reward):
+    #     if reward > -0.2:
+    #         return 1
+    #     elif reward > -1.0:
+    #         return 0
+    #     else:
+    #         return 0
     def process_reward(self, reward):
         if reward > -0.2:
-            return 1
+            return 3
         elif reward > -1.0:
-            return 0
+            return 0.
         else:
-            return 0
+            return reward/15.
 
     def process_state_batch(self, batch):
         # processed_batch = batch.astype('float32') / 255.
@@ -50,11 +57,12 @@ model.add(Activation("relu"))
 model.add(Dense(nb_actions, activation="linear"))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
-memory = SequentialMemory(limit=50000, window_length=1)
-policy = BoltzmannQPolicy()
+memory = SequentialMemory(limit=10000, window_length=1)
+# policy = BoltzmannQPolicy()
+policy = EpsGreedyQPolicy(eps=0.2)
 
 # Duel-DQNのAgentクラスオブジェクトの準備 （上記processorやmodelを元に）
-dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100,
                enable_dueling_network=True, dueling_type="avg", target_model_update=1e-2, policy=policy,
                processor=processor)
 dqn.compile(Adam(lr=1e-3), metrics=["mae"])

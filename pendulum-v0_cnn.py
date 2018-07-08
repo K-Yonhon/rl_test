@@ -50,9 +50,10 @@ class PendulumProcessor(Processor):
     # Gym環境の報酬の出力と、Duel-DQNの報酬の入力との違いを吸収
     def process_reward(self, reward):
         if reward > -0.2:
-            return 10
+            self.cnt += 1
+            return 5
         elif reward > -1.0:
-            return 0
+            return 0.
         else:
             return reward/10.
 
@@ -109,6 +110,9 @@ class PendulumProcessor(Processor):
         # reward = self.process_reward(reward)
         # return self.rgb_state, reward, done, info
         reward = self.process_reward(reward)
+        if done:
+            print("cnt = ", self.cnt)
+            self.cnt = 0
         # return self._get_rgb_state(observation), reward, done, info
         return self._get_rgb_state(observation), reward, done, info
 
@@ -135,81 +139,82 @@ class PendulumProcessor(Processor):
 processor = PendulumProcessor()
 
 # 画像の特徴量抽出ネットワークのパラメタ
-n_filters = 32
+n_filters = 24
 # n_filters = 16
 kernel = (3, 3)
 strides = (2, 2)
-
-# model = Sequential()
-# # 畳込み層による画像の特徴量抽出ネットワーク
-# # model.add(Reshape((img_size, img_size, channel), input_shape=(1, img_size, img_size, channel)))
-# model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
-# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-# # model.add(MaxPooling2D(pool_size=(2, 2)))
-# # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
-# model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
-# # model.add(Dropout(0.2))
-# model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
-# # model.add(MaxPooling2D(pool_size=(2, 2)))
-# model.add(Flatten())
-# # 以前と同様の2層FCのQ関数ネットワーク
-# # model.add(Dense(16, activation="relu"))
-# # model.add(Dropout(0.2))
-# # model.add(Dense(16, activation="relu"))
-# model.add(Dense(16, activation="relu"))
-# model.add(Dense(nb_actions, activation="linear"))
 
 model = Sequential()
 # 畳込み層による画像の特徴量抽出ネットワーク
 # model.add(Reshape((img_size, img_size, channel), input_shape=(1, img_size, img_size, channel)))
 model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
-
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
-# model.add(BatchNormalization())
-model.add(Activation('relu'))
-
+model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
+# model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
 # model.add(MaxPooling2D(pool_size=(2, 2)))
-
-model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
-# model.add(BatchNormalization())
-model.add(Activation('relu'))
-#
-# model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
 # model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
-# model.add(Dropout(0.2))
-model.add(Conv2D(n_filters, kernel, padding="same"))
-# model.add(BatchNormalization())
-model.add(Activation('relu'))
-
+model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
 # model.add(MaxPooling2D(pool_size=(2, 2)))
-
 model.add(Flatten())
 # 以前と同様の2層FCのQ関数ネットワーク
 # model.add(Dense(16, activation="relu"))
 # model.add(Dropout(0.2))
-# model.add(Dense(16, activation="relu"))
-model.add(Dense(32))
-# model.add(Dense(16, use_bias=False))
-# model.add(BatchNormalization())
-model.add(Activation('relu'))
+# model.add(Dense(256, activation="relu"))
+model.add(Dense(64, activation="relu"))
+model.add(Dense(16, activation="relu"))
+model.add(Dense(nb_actions, activation="linear"))
 
-model.add(Dense(16))
-# model.add(Dense(16, use_bias=False))
-# model.add(BatchNormalization())
-model.add(Activation('relu'))
-
-# model.add(Dense(nb_actions, activation="linear"))
-model.add(Dense(nb_actions))
-# model.add(Dense(nb_actions, use_bias=False))
-# model.add(BatchNormalization())
-model.add(Activation('linear'))
+# model = Sequential()
+# # 畳込み層による画像の特徴量抽出ネットワーク
+# # model.add(Reshape((img_size, img_size, channel), input_shape=(1, img_size, img_size, channel)))
+# model.add(Permute((2, 3, 1), input_shape=(channel, img_size, img_size)))
+#
+# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
+# # model.add(BatchNormalization())
+# model.add(Activation('relu'))
+#
+# # model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+# model.add(Conv2D(n_filters, kernel, strides=strides, padding="same"))
+# # model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# #
+# # model.add(MaxPooling2D(pool_size=(2, 2)))
+# # model.add(Conv2D(n_filters, kernel, strides=strides, padding="same", activation="relu"))
+# # model.add(Conv2D(n_filters, kernel, padding="same", activation="relu"))
+# # model.add(Dropout(0.2))
+# model.add(Conv2D(n_filters, kernel, padding="same"))
+# # model.add(BatchNormalization())
+# model.add(Activation('relu'))
+#
+# # model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+# model.add(Flatten())
+# # 以前と同様の2層FCのQ関数ネットワーク
+# # model.add(Dense(16, activation="relu"))
+# # model.add(Dropout(0.2))
+# # model.add(Dense(16, activation="relu"))
+# model.add(Dense(32))
+# # model.add(Dense(16, use_bias=False))
+# # model.add(BatchNormalization())
+# model.add(Activation('relu'))
+#
+# model.add(Dense(16))
+# # model.add(Dense(16, use_bias=False))
+# # model.add(BatchNormalization())
+# model.add(Activation('relu'))
+#
+# # model.add(Dense(nb_actions, activation="linear"))
+# model.add(Dense(nb_actions))
+# # model.add(Dense(nb_actions, use_bias=False))
+# # model.add(BatchNormalization())
+# model.add(Activation('linear'))
 
 # Duel-DQNアルゴリズム関連の幾つかの設定
 memory = SequentialMemory(limit=10000, window_length=channel)
-policy = BoltzmannQPolicy()
-# policy = EpsGreedyQPolicy(eps=0.2)
+# policy = BoltzmannQPolicy()
+policy = EpsGreedyQPolicy(eps=0.2)
 
 # Duel-DQNのAgentクラスオブジェクトの準備 （上記processorやmodelを元に）
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100,
