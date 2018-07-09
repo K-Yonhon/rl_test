@@ -39,6 +39,8 @@ os.environ['PYTHONHASHSEED'] = '0'
 np.random.seed(7)
 rn.seed(7)
 
+csv_name = 'data20x20'
+
 
 class Mz(gym.core.Env):
     def __init__(self):
@@ -48,7 +50,8 @@ class Mz(gym.core.Env):
         self.WALL = 0
 
         mz_data = MzData()
-        mz_data.read(csv='data10x10.csv')
+        # data20x20.csv f=33
+        mz_data.read(csv=csv_name+'.csv')
         self.flags = mz_data.flags
         self.c_size = mz_data.shape[1]
         self.r_size = mz_data.shape[0]
@@ -200,7 +203,7 @@ def main():
                    policy=policy)
     dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=['mae'])
 
-    tb = TensorBoard()
+    tb = TensorBoard(log_dir='./logs/' + csv_name)
     history = dqn.fit(env, nb_steps=1000000, visualize=False, verbose=2, nb_max_episode_steps=1000,
                       callbacks=[tb])
 
