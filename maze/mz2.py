@@ -204,7 +204,7 @@ class Mz(gym.core.Env):
 
 
 # m_size = 10
-channel = 6
+channel = 4
 
 # class MazeProcessor(Processor):
 #     def __init__(self):
@@ -222,6 +222,7 @@ channel = 6
 def main():
     from keras.callbacks import TensorBoard
     env = Mz()
+    env.seed(7)
     nb_actions = env.action_space.n
     m_size = env.c_size
     # n_szie = env.a_self
@@ -269,7 +270,7 @@ def main():
     model.add(Flatten())
 
     # model.add(Dense(32, activation="relu"))
-    model.add(Dense(256, activation="relu"))
+    model.add(Dense(128, activation="relu"))
     model.add(Dense(nb_actions, activation="relu"))
     print(model.summary())
 
@@ -277,16 +278,16 @@ def main():
     # experience replay用のmemory
     memory = SequentialMemory(limit=5000, window_length=channel)
     # 行動方策はオーソドックスなepsilon-greedy。ほかに、各行動のQ値によって確率を決定するBoltzmannQPolicyが利用可能
-    # policy = EpsGreedyQPolicy(eps=0.1)
-    policy = BoltzmannQPolicy()
+    policy = EpsGreedyQPolicy(eps=0.2)
+    # policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
                    enable_dueling_network=True, dueling_type='avg', target_model_update=1e-2,
                    policy=policy)
                    # processor=processor)
-    dqn.compile(Adam(lr=1e-2), metrics=['mae'])
+    dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=['mae'])
 
     tb = TensorBoard()
-    history = dqn.fit(env, nb_steps=1000000, visualize=False, verbose=2, nb_max_episode_steps=300,
+    history = dqn.fit(env, nb_steps=1000000, visualize=False, verbose=2, nb_max_episode_steps=400,
                       callbacks=[tb])
 
 
