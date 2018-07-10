@@ -114,8 +114,6 @@ class MzEnv(gym.core.Env):
 
     def up_mz(self):
         self.maze.fill(self.PATH)
-        for wall in self.walls:
-            self.maze[tuple(wall)] = self.WALL
 
         self.maze[tuple(self.pos)] = self.AGENT
 
