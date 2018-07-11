@@ -15,6 +15,11 @@ class MzEnv(gym.core.Env):
         self.PATH = 1
         self.WALL = 0
 
+        self.reward_move = -0.01
+        self.reward_hit_wall = -1.5
+        self.reward_get_flag = 1.5
+        self.reward_goal = 10.
+
         mz_data = MzData()
         mz_data.read(csv=name+'.csv')
         self.flags = mz_data.flags
@@ -47,11 +52,10 @@ class MzEnv(gym.core.Env):
 
         cu_pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
 
-        inv_re = -1.5
         if cu_pos in self.walls:
             self.bl_cnt += 1
             self.up_mz()
-            return self.maze, inv_re, False, {}
+            return self.maze, self.reward_hit_wall, False, {}
 
         self.pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
 
@@ -67,14 +71,14 @@ class MzEnv(gym.core.Env):
             print("## flags={0}/{1}".format(len(self.check_flags), len(self.flags)))
             done = True
             # reward = 10.0
-            reward = (1.0 - lots)*10.0
+            reward = (1.0 - lots)*self.reward_goal
             # reward = 1.0 - lots
         elif z > 0:
             # reward = 0.1
-            reward = 1.5
+            reward = self.reward_get_flag
         else:
             # reward = -0.1
-            reward = -0.01
+            reward = self.reward_move
             # reward = 0
 
         self.up_mz()

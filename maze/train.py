@@ -18,6 +18,7 @@ def train(model,
           men_limit: int,
           men_window_length: int,
           nb_steps: int, nb_max_episode_steps: int,
+          nb_steps_warmup=10,
           batch_size: int=32,
           seed=7,
           visualize=False):
@@ -35,7 +36,7 @@ def train(model,
     policy = EpsGreedyQPolicy(eps=0.2)
     # policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                   nb_steps_warmup=10,
+                   nb_steps_warmup=nb_steps_warmup,
                    batch_size=batch_size,
                    enable_dueling_network=True,
                    dueling_type='avg',
