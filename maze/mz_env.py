@@ -28,6 +28,9 @@ class MzEnv(gym.core.Env):
         self.walls = mz_data.walls
         self.maze = np.ones(mz_data.shape)
 
+        self.move_log = {}
+        self.hit_log = {}
+
         self.actions = {
             0: (0, 1),
             1: (0, -1),
@@ -53,9 +56,20 @@ class MzEnv(gym.core.Env):
         cu_pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
 
         if cu_pos in self.walls:
+            reward_hit = self.reward_hit_wall
+            tp_pos = tuple(cu_pos)
+            if tp_pos in self.hit_log:
+                self.hit_log[tp_pos] += 1
+                reward_hit = self.reward_hit_wall - self.hit_log[tp_pos]*0.05
+                # h_cnt = self.hit_log[tp_pos]
+                # reward_hit -= 0.05 / ((float(h_cnt) + 0.01) ** 0.5)
+            else:
+                self.hit_log[tp_pos] = 0
+                # 0.05 / (0.01 ** 0.5)
+
             self.bl_cnt += 1
             self.up_mz()
-            return self.maze, self.reward_hit_wall, False, {}
+            return self.maze, reward_hit, False, {}
 
         self.pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
 
@@ -81,6 +95,17 @@ class MzEnv(gym.core.Env):
             reward = self.reward_move
             # reward = 0
 
+        tp_pos = tuple(self.pos)
+        if tp_pos in self.move_log:
+            self.move_log[tp_pos] += 1
+            mv_cnt = self.move_log[tp_pos]
+
+            reward = self.reward_move - self.move_log[tp_pos]*0.05
+            # reward += 0.1/((float(mv_cnt) + 0.01)**0.5)
+        else:
+            self.move_log[tp_pos] = 0
+            # reward += 0.1 / (0.01 ** 0.5)
+
         self.up_mz()
         return self.maze, reward, done, {}
 
@@ -92,6 +117,9 @@ class MzEnv(gym.core.Env):
         self.pos = np.copy(self.start)
         self.up_mz()
         self.check_flags = self.flags.copy()
+
+        self.move_log = {}
+        self.hit_log = {}
 
         return self.maze
 

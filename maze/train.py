@@ -20,6 +20,7 @@ def train(model,
           nb_steps: int, nb_max_episode_steps: int,
           nb_steps_warmup=10,
           batch_size: int=32,
+          target_model_update=1e-2,
           seed=7,
           visualize=False):
 
@@ -33,14 +34,14 @@ def train(model,
     # experience replay用のmemory
     memory = SequentialMemory(limit=men_limit, window_length=men_window_length)
     # 行動方策はオーソドックスなepsilon-greedy。ほかに、各行動のQ値によって確率を決定するBoltzmannQPolicyが利用可能
-    policy = EpsGreedyQPolicy(eps=0.2)
+    policy = EpsGreedyQPolicy(eps=0.1)
     # policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
                    nb_steps_warmup=nb_steps_warmup,
                    batch_size=batch_size,
                    enable_dueling_network=True,
                    dueling_type='avg',
-                   target_model_update=1e-2,
+                   target_model_update=target_model_update,
                    policy=policy)
     dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=['mae'])
 
