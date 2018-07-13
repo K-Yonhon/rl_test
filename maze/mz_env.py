@@ -14,12 +14,12 @@ class MzEnv(gym.core.Env):
         self.FLAG = 0.7
         self.PATH = 1
         self.WALL = 0
-        self.MARK = 0.1
+        self.MARK = -0.1
         self.GOAL = 0.9
 
-        self.reward_move = -0.01
-        self.reward_hit_wall = -1.5
-        self.reward_get_flag = 1.5
+        self.reward_move = -0.5
+        self.reward_hit_wall = -1.
+        self.reward_get_flag = 1.
         self.reward_goal = 10.
 
         mz_data = MzData()
@@ -32,7 +32,7 @@ class MzEnv(gym.core.Env):
 
         # self.move_log = {}
         # self.hit_log = {}
-        # self.tr = {}
+        self.tr = {}
 
         self.actions = {
             0: (0, 1),
@@ -46,7 +46,8 @@ class MzEnv(gym.core.Env):
 
         self.check_flags = self.flags.copy()
 
-        low = self.WALL
+        # low = self.WALL
+        low = -1.
         high = self.PATH
         self.observation_space = gym.spaces.Box(low=low, high=high, shape=self.maze.shape, dtype=np.float32)
 
@@ -57,8 +58,17 @@ class MzEnv(gym.core.Env):
         mv_x, mv_y = self.actions[action]
 
         cu_pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
+        # cu_pos = [self.pos[0], self.pos[1]]
+
+        # if 0<=cu_pos[0]<self.maze.shape[0] and 0<=cu_pos[1]<self.maze.shape[1]:
+        #     if cu_pos[0] == 0 or cu_pos[1] == 0 or cu_pos[0] == self.maze.shape[0]-1 or cu_pos[1] == self.maze.shape[1]-1:
+        #         self.bl_cnt += 1
+        #         self.pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
+        #         self.up_mz()
+        #         return self.maze, self.reward_hit_wall, False, {}
 
         if cu_pos in self.walls:
+            # print("hit pos = ", cu_pos)
             reward_hit = self.reward_hit_wall
             # tp_pos = tuple(cu_pos)
             # if tp_pos in self.hit_log:
@@ -70,16 +80,30 @@ class MzEnv(gym.core.Env):
             #     self.hit_log[tp_pos] = 0
             #     # 0.05 / (0.01 ** 0.5)
 
+            if tuple(cu_pos) in self.tr:
+                self.tr[tuple(cu_pos)] += 1
+            else:
+                self.tr[tuple(cu_pos)] = 1
+
+
             self.bl_cnt += 1
             self.up_mz()
             return self.maze, reward_hit, False, {}
+        else:
+            pass
+            # print("not hit pos = ", cu_pos)
+
+
+        if tuple(cu_pos) in self.tr:
+            self.tr[tuple(cu_pos)] += 1
+        #     mv_cnt = self.tr[tuple(cu_pos)]
+        #     reward += 0.1 / ((float(mv_cnt) + 0.01) ** 0.5)
+        else:
+            self.tr[tuple(cu_pos)] = 1
+        #     reward += 0.1 / (0.01 ** 0.5)
+
 
         self.pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
-
-        # if tuple(cu_pos) in self.tr:
-        #     self.tr[tuple(cu_pos)] += 1
-        # else:
-        #     self.tr[tuple(cu_pos)] = 1
 
         z=0
         if self.pos in self.check_flags:
@@ -87,16 +111,17 @@ class MzEnv(gym.core.Env):
             z = 1
 
         done = False
-        if self.pos == self.goal:
+        # if self.pos == self.goal:
+        if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
         # if len(self.check_flags)==0:
             lots = len(self.check_flags) / len(self.flags)
-            print("## bl_cnt={0},  flags={1}/{2}".format(self.bl_cnt, len(self.check_flags), len(self.flags)))
+            print("## DONE bl_cnt={0},  flags={1}/{2}".format(self.bl_cnt, len(self.check_flags), len(self.flags)))
             done = True
             # reward = 10.0
-            reward = (1.0 - lots)*self.reward_goal
-            # reward = 1.0 - lots
+            # reward = (1.0 - lots)*self.reward_goal
+            reward = 1.0 - lots
         elif z > 0:
-            # reward = 0.1
+            # reward = 0.
             reward = self.reward_get_flag
         else:
             # reward = -0.1
@@ -118,17 +143,19 @@ class MzEnv(gym.core.Env):
         return self.maze, reward, done, {}
 
     def reset(self):
-        # print("self.bl_cnt={0}  checked flags={1}/{2}".
-        #       format(self.bl_cnt, len(self.flags)-len(self.check_flags), len(self.flags)))
+        print("self.bl_cnt={0}  checked flags={1}/{2}".
+              format(self.bl_cnt, len(self.flags)-len(self.check_flags), len(self.flags)))
+
+        re_tr = sorted(self.tr.items(), key=lambda x: -x[1])
+        print("self.tr={0}".format(re_tr))
 
         self.bl_cnt = 0
         self.pos = np.copy(self.start)
-        self.up_mz()
         self.check_flags = self.flags.copy()
-
+        self.up_mz()
         # self.move_log = {}
         # self.hit_log = {}
-        # self.tr = {}
+        self.tr = {}
 
         return self.maze
 
@@ -136,7 +163,10 @@ class MzEnv(gym.core.Env):
         self.maze.fill(self.PATH)
 
         # for ps in self.tr:
-        #     self.maze[ps] = self.MARK
+        #     c = self.tr[ps]
+        #     if c > 10.:
+        #         c = 10.
+        #     self.maze[ps] = c*self.MARK
 
         self.maze[tuple(self.pos)] = self.AGENT
         for fg in self.check_flags:

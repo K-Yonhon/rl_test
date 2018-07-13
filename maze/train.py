@@ -34,7 +34,7 @@ def train(model,
     # experience replay用のmemory
     memory = SequentialMemory(limit=men_limit, window_length=men_window_length)
     # 行動方策はオーソドックスなepsilon-greedy。ほかに、各行動のQ値によって確率を決定するBoltzmannQPolicyが利用可能
-    policy = EpsGreedyQPolicy(eps=0.1)
+    policy = EpsGreedyQPolicy(eps=0.2)
     # policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
                    nb_steps_warmup=nb_steps_warmup,
