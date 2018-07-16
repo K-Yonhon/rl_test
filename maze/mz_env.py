@@ -17,10 +17,10 @@ class MzEnv(gym.core.Env):
         self.MARK = -0.1
         self.GOAL = 0.9
 
-        self.reward_move = -0.5
+        self.reward_move = -0.01
         self.reward_hit_wall = -1.
         self.reward_get_flag = 1.
-        self.reward_goal = 10.
+        self.reward_goal = 5.
 
         mz_data = MzData()
         mz_data.read(csv=name+'.csv')
@@ -58,6 +58,7 @@ class MzEnv(gym.core.Env):
         mv_x, mv_y = self.actions[action]
 
         cu_pos = [self.pos[0] + mv_y, self.pos[1] + mv_x]
+        # print("self.pos={0}, cu_pos={1}".format(self.pos, cu_pos))
         # cu_pos = [self.pos[0], self.pos[1]]
 
         # if 0<=cu_pos[0]<self.maze.shape[0] and 0<=cu_pos[1]<self.maze.shape[1]:
@@ -80,10 +81,10 @@ class MzEnv(gym.core.Env):
             #     self.hit_log[tp_pos] = 0
             #     # 0.05 / (0.01 ** 0.5)
 
-            if tuple(cu_pos) in self.tr:
-                self.tr[tuple(cu_pos)] += 1
-            else:
-                self.tr[tuple(cu_pos)] = 1
+            # if tuple(cu_pos) in self.tr:
+            #     self.tr[tuple(cu_pos)] += 1
+            # else:
+            #     self.tr[tuple(cu_pos)] = 1
 
 
             self.bl_cnt += 1
@@ -111,15 +112,15 @@ class MzEnv(gym.core.Env):
             z = 1
 
         done = False
-        # if self.pos == self.goal:
-        if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
+        if self.pos == self.goal:
+        # if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
         # if len(self.check_flags)==0:
             lots = len(self.check_flags) / len(self.flags)
-            print("## DONE bl_cnt={0},  flags={1}/{2}".format(self.bl_cnt, len(self.check_flags), len(self.flags)))
+            print("## DONE bl_cnt={0},  flags={1}/{2}".format(self.bl_cnt, len(self.flags) - len(self.check_flags), len(self.flags)))
             done = True
             # reward = 10.0
-            # reward = (1.0 - lots)*self.reward_goal
-            reward = 1.0 - lots
+            reward = (1.0 - lots)*self.reward_goal
+            # reward = 1.0 - lots
         elif z > 0:
             # reward = 0.
             reward = self.reward_get_flag
@@ -129,15 +130,15 @@ class MzEnv(gym.core.Env):
             # reward = 0
 
         # tp_pos = tuple(self.pos)
-        # if tp_pos in self.move_log:
-        #     self.move_log[tp_pos] += 1
-        #     mv_cnt = self.move_log[tp_pos]
+        # if tp_pos in self.tr:
+        #     # self.move_log[tp_pos] += 1
+        #     mv_cnt = self.tr[tp_pos]
         #
-        #     reward = self.reward_move - self.move_log[tp_pos]*0.05
-        #     # reward += 0.1/((float(mv_cnt) + 0.01)**0.5)
+        #     # reward = self.reward_move - self.move_log[tp_pos]*0.05
+        #     reward += 0.01/((float(mv_cnt) + 0.01)**0.5)
         # else:
-        #     self.move_log[tp_pos] = 0
-        #     # reward += 0.1 / (0.01 ** 0.5)
+        #     # self.move_log[tp_pos] = 0
+        #     reward += 0.01 / (0.01 ** 0.5)
 
         self.up_mz()
         return self.maze, reward, done, {}

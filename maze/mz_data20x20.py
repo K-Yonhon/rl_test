@@ -246,17 +246,17 @@ def build_model_7(env):
     nb_steps_warmup = 200
     return model, channel, men_limit, batch_size, nb_steps_warmup
 
-def build_model(env):
+def build_model_9(env):
     # channel = 32
-    channel = 16
+    channel = 4
 
     n_filters1 = 16
     kernel1 = (3, 3)
 
-    n_filters2 = 16
+    n_filters2 = 32
     kernel2 = (3, 3)
 
-    n_filters3 = 16
+    n_filters3 = 32
     kernel3 = (2, 2)
 
     # kernel = (3, 3)
@@ -290,25 +290,221 @@ def build_model(env):
 
     # model.add(Dense(128, kernel_initializer="he_normal", use_bias=False))
     # model.add(BatchNormalization())
-    model.add(Dense(128))
+    model.add(Dense(256))
     model.add(Activation("relu"))
     # model.add(Dropout(0.2))
 
     # model.add(Dense(64, kernel_initializer="he_normal", use_bias=False))
     # model.add(BatchNormalization())
-    # model.add(Dense(128))
-    # model.add(Activation("relu"))
+    model.add(Dense(128))
+    model.add(Activation("relu"))
+
+    model.add(Dense(128))
+    model.add(Activation("relu"))
 
     # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
     # model.add(Dense(nb_actions, activation="linear", kernel_initializer="he_normal"))
     model.add(Dense(nb_actions, activation="softmax"))
     # model.add(Dense(nb_actions, activation="linear"))
 
-    men_limit = 10000
+    men_limit = 20000
     batch_size = 32
     nb_steps_warmup = 200
     # target_model_update = 1000
     target_model_update = 1e-2
+    return model, channel, men_limit, batch_size, nb_steps_warmup, target_model_update
+
+def build_model_10(env):
+    # channel = 32
+    channel = 4
+
+    n_filters1 = 16
+    kernel1 = (3, 3)
+
+    n_filters2 = 32
+    kernel2 = (3, 3)
+
+    n_filters3 = 32
+    kernel3 = (2, 2)
+
+    # kernel = (3, 3)
+    strides1 = (3, 3)
+    strides2 = (2, 2)
+
+    input_shape = (channel,) + env.observation_space.shape
+    nb_actions = env.action_space.n
+
+    model = Sequential()
+    model.add(Permute((2, 3, 1), input_shape=input_shape))
+
+    model.add(Conv2D(n_filters1, kernel1, strides=strides1, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(0.3))
+
+    model.add(Conv2D(n_filters2, kernel2, strides=strides2, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(0.3))
+
+    model.add(Conv2D(n_filters3, kernel3, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(0.3))
+
+    model.add(Flatten())
+
+    # model.add(LSTM(512, activation='tanh'))
+
+    # model.add(Dense(128, kernel_initializer="he_normal", use_bias=False))
+    # model.add(BatchNormalization())
+    model.add(Dense(256))
+    model.add(Activation("relu"))
+    model.add(Dropout(0.2))
+
+    # model.add(Dense(64, kernel_initializer="he_normal", use_bias=False))
+    # model.add(BatchNormalization())
+    model.add(Dense(128))
+    model.add(Activation("relu"))
+    model.add(Dropout(0.2))
+
+    model.add(Dense(128))
+    model.add(Activation("relu"))
+    model.add(Dropout(0.2))
+
+    # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
+    # model.add(Dense(nb_actions, activation="linear", kernel_initializer="he_normal"))
+    model.add(Dense(nb_actions, activation="softmax"))
+    # model.add(Dense(nb_actions, activation="linear"))
+
+    men_limit = 20000
+    batch_size = 32
+    nb_steps_warmup = 200
+    # target_model_update = 1000
+    target_model_update = 1e-2
+    return model, channel, men_limit, batch_size, nb_steps_warmup, target_model_update
+
+def build_model_11(env):
+    # channel = 32
+    channel = 1
+
+    n_filters1 = 32
+    kernel1 = (3, 3)
+
+    n_filters2 = 16
+    kernel2 = (3, 3)
+
+    n_filters3 = 16
+    kernel3 = (2, 2)
+
+    # kernel = (3, 3)
+    strides1 = (3, 3)
+    strides2 = (2, 2)
+
+    input_shape = (channel,) + env.observation_space.shape
+    nb_actions = env.action_space.n
+
+    model = Sequential()
+    model.add(Permute((2, 3, 1), input_shape=input_shape))
+
+    model.add(Conv2D(n_filters1, kernel1, strides=strides1, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.3))
+
+    model.add(Conv2D(n_filters2, kernel2, strides=strides2, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.3))
+
+    model.add(Conv2D(n_filters3, kernel3, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.3))
+
+    model.add(Flatten())
+
+    # model.add(LSTM(512, activation='tanh'))
+
+    # model.add(Dense(128, kernel_initializer="he_normal", use_bias=False))
+    # model.add(BatchNormalization())
+    model.add(Dense(256))
+    model.add(Activation("relu"))
+    model.add(Dropout(0.2))
+
+    model.add(Dense(64))
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.2))
+
+    # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
+    # model.add(Dense(nb_actions, activation="linear", kernel_initializer="he_normal"))
+    # model.add(Dense(nb_actions, activation="softmax"))
+    model.add(Dense(nb_actions, activation="softmax"))
+
+    men_limit = 20000
+    batch_size = 64
+    nb_steps_warmup = 200
+    # target_model_update = 1000
+    target_model_update = 1e-3
+    return model, channel, men_limit, batch_size, nb_steps_warmup, target_model_update
+
+def build_model(env):
+    # channel = 32
+    channel = 1
+
+    n_filters1 = 8
+    kernel1 = (8, 8)
+
+    n_filters2 = 16
+    kernel2 = (4, 4)
+
+    n_filters3 = 32
+    kernel3 = (2, 2)
+
+    # kernel = (3, 3)
+    strides1 = (2, 2)
+    strides2 = (1, 1)
+
+    input_shape = (channel,) + env.observation_space.shape
+    nb_actions = env.action_space.n
+
+    model = Sequential()
+    model.add(Permute((2, 3, 1), input_shape=input_shape))
+
+    model.add(Conv2D(n_filters1, kernel1, strides=strides1, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.3))
+
+    model.add(Conv2D(n_filters3, kernel3, padding="same"))
+    # model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.3))
+
+    model.add(Flatten())
+
+    # model.add(LSTM(512, activation='tanh'))
+
+    # model.add(Dense(128, kernel_initializer="he_normal", use_bias=False))
+    # model.add(BatchNormalization())
+    model.add(Dense(256))
+    model.add(Activation("relu"))
+    # model.add(Dropout(0.2))
+
+    # model.add(Dense(64))
+    # model.add(Activation("relu"))
+    # model.add(Dropout(0.2))
+
+    # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
+    # model.add(Dense(nb_actions, activation="linear", kernel_initializer="he_normal"))
+    # model.add(Dense(nb_actions, activation="linear"))
+    model.add(Dense(nb_actions, activation="softmax"))
+
+    men_limit = 20000
+    batch_size = 32
+    nb_steps_warmup = 200
+    # target_model_update = 1000
+    target_model_update = 1e-3
     return model, channel, men_limit, batch_size, nb_steps_warmup, target_model_update
 
 def main():
@@ -324,8 +520,9 @@ def main():
     print(model.summary())
 
     # men_limit = 10000
-    nb_steps = 500000
-    nb_max_episode_steps = 1600
+    nb_steps = 1000000
+    # nb_max_episode_steps = 1600
+    nb_max_episode_steps = 1000
     # nb_steps_warmup = 500
     # batch_size = 64
     dqn, history = train(model=model,

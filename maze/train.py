@@ -5,7 +5,7 @@ import random as rn
 import numpy as np
 import gym
 import gym.spaces
-from rl.policy import EpsGreedyQPolicy
+from rl.policy import EpsGreedyQPolicy, BoltzmannQPolicy
 from rl.memory import SequentialMemory
 from keras.optimizers import Adam
 from rl.agents.dqn import DQNAgent
@@ -34,8 +34,8 @@ def train(model,
     # experience replay用のmemory
     memory = SequentialMemory(limit=men_limit, window_length=men_window_length)
     # 行動方策はオーソドックスなepsilon-greedy。ほかに、各行動のQ値によって確率を決定するBoltzmannQPolicyが利用可能
-    policy = EpsGreedyQPolicy(eps=0.2)
-    # policy = BoltzmannQPolicy()
+    # policy = EpsGreedyQPolicy(eps=0.3)
+    policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
                    nb_steps_warmup=nb_steps_warmup,
                    batch_size=batch_size,
