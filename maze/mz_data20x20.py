@@ -452,14 +452,14 @@ def build_model(env):
     # channel = 32
     channel = 1
 
-    n_filters1 = 8
-    kernel1 = (8, 8)
+    n_filters1 = 16
+    kernel1 = (3, 3)
 
     n_filters2 = 16
     kernel2 = (4, 4)
 
     n_filters3 = 32
-    kernel3 = (2, 2)
+    kernel3 = (3, 3)
 
     # kernel = (3, 3)
     strides1 = (2, 2)
@@ -491,8 +491,8 @@ def build_model(env):
     model.add(Activation("relu"))
     # model.add(Dropout(0.2))
 
-    # model.add(Dense(64))
-    # model.add(Activation("relu"))
+    model.add(Dense(128))
+    model.add(Activation("relu"))
     # model.add(Dropout(0.2))
 
     # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
@@ -501,7 +501,7 @@ def build_model(env):
     model.add(Dense(nb_actions, activation="softmax"))
 
     men_limit = 20000
-    batch_size = 32
+    batch_size = 8
     nb_steps_warmup = 200
     # target_model_update = 1000
     target_model_update = 1e-3

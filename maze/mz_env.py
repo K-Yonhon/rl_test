@@ -20,7 +20,7 @@ class MzEnv(gym.core.Env):
         self.reward_move = -0.01
         self.reward_hit_wall = -1.
         self.reward_get_flag = 1.
-        self.reward_goal = 5.
+        self.reward_goal = 1.
 
         mz_data = MzData()
         mz_data.read(csv=name+'.csv')
@@ -33,6 +33,7 @@ class MzEnv(gym.core.Env):
         # self.move_log = {}
         # self.hit_log = {}
         self.tr = {}
+        self.flg_tr = []
 
         self.actions = {
             0: (0, 1),
@@ -110,13 +111,18 @@ class MzEnv(gym.core.Env):
         if self.pos in self.check_flags:
             self.check_flags.remove(self.pos)
             z = 1
+            self.flg_tr.append(self.pos)
 
         done = False
-        if self.pos == self.goal:
+        # if self.pos == self.goal:
         # if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
-        # if len(self.check_flags)==0:
+        if len(self.check_flags)==0:
             lots = len(self.check_flags) / len(self.flags)
-            print("## DONE bl_cnt={0},  flags={1}/{2}".format(self.bl_cnt, len(self.flags) - len(self.check_flags), len(self.flags)))
+            print("## DONE self.pos={0}, bl_cnt={1}, flags={2}/{3}".format(self.pos,
+                                                                           self.bl_cnt,
+                                                                           len(self.flags) - len(self.check_flags),
+                                                                           len(self.flags)))
+            print("## DONE self.flg_tr={0}".format(self.flg_tr))
             done = True
             # reward = 10.0
             reward = (1.0 - lots)*self.reward_goal
@@ -157,6 +163,7 @@ class MzEnv(gym.core.Env):
         # self.move_log = {}
         # self.hit_log = {}
         self.tr = {}
+        self.flg_tr = []
 
         return self.maze
 
