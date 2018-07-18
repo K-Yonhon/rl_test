@@ -14,13 +14,13 @@ class MzEnv(gym.core.Env):
         self.FLAG = 0.7
         self.PATH = 1
         self.WALL = 0
-        self.MARK = -0.1
+        self.MARK = -1.
         self.GOAL = 0.9
 
         self.reward_move = -0.01
         self.reward_hit_wall = -1.
-        self.reward_get_flag = 1.
-        self.reward_goal = 1.
+        self.reward_get_flag = 2.
+        self.reward_goal = 10.
 
         mz_data = MzData()
         mz_data.read(csv=name+'.csv')
@@ -115,8 +115,8 @@ class MzEnv(gym.core.Env):
 
         done = False
         # if self.pos == self.goal:
-        # if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
-        if len(self.check_flags)==0:
+        if (len(self.flags)-len(self.check_flags)) >= len(self.flags)*0.8:
+        # if len(self.check_flags)==0:
             lots = len(self.check_flags) / len(self.flags)
             print("## DONE self.pos={0}, bl_cnt={1}, flags={2}/{3}".format(self.pos,
                                                                            self.bl_cnt,
@@ -157,13 +157,14 @@ class MzEnv(gym.core.Env):
         print("self.tr={0}".format(re_tr))
 
         self.bl_cnt = 0
-        self.pos = np.copy(self.start)
-        self.check_flags = self.flags.copy()
-        self.up_mz()
         # self.move_log = {}
         # self.hit_log = {}
         self.tr = {}
         self.flg_tr = []
+
+        self.pos = np.copy(self.start)
+        self.check_flags = self.flags.copy()
+        self.up_mz()
 
         return self.maze
 
@@ -171,14 +172,20 @@ class MzEnv(gym.core.Env):
         self.maze.fill(self.PATH)
 
         # for ps in self.tr:
-        #     c = self.tr[ps]
-        #     if c > 10.:
-        #         c = 10.
-        #     self.maze[ps] = c*self.MARK
+        #     # c = self.tr[ps]
+        #     # if c > 10.:
+        #     #     c = 10.
+        #     self.maze[ps] = self.MARK
 
         self.maze[tuple(self.pos)] = self.AGENT
         for fg in self.check_flags:
             self.maze[tuple(fg)] = self.FLAG
+
+        for ps in self.flg_tr:
+            # c = self.tr[ps]
+            # if c > 10.:
+            #     c = 10.
+            self.maze[tuple(ps)] = self.MARK
 
         self.maze[tuple(self.goal)] = self.GOAL
         # pil_img = Image.fromarray(self.maze*255.).convert("L")

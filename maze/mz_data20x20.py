@@ -452,13 +452,13 @@ def build_model(env):
     # channel = 32
     channel = 1
 
-    n_filters1 = 16
+    n_filters1 = 8
     kernel1 = (3, 3)
 
-    n_filters2 = 16
+    n_filters2 = 8
     kernel2 = (4, 4)
 
-    n_filters3 = 32
+    n_filters3 = 16
     kernel3 = (3, 3)
 
     # kernel = (3, 3)
@@ -471,7 +471,7 @@ def build_model(env):
     model = Sequential()
     model.add(Permute((2, 3, 1), input_shape=input_shape))
 
-    model.add(Conv2D(n_filters1, kernel1, strides=strides1, padding="same"))
+    model.add(Conv2D(n_filters1, kernel1, strides=strides2, padding="same"))
     # model.add(BatchNormalization())
     model.add(Activation("relu"))
     # model.add(Dropout(0.3))
@@ -487,12 +487,12 @@ def build_model(env):
 
     # model.add(Dense(128, kernel_initializer="he_normal", use_bias=False))
     # model.add(BatchNormalization())
-    model.add(Dense(256))
+    model.add(Dense(128))
     model.add(Activation("relu"))
     # model.add(Dropout(0.2))
 
-    model.add(Dense(128))
-    model.add(Activation("relu"))
+    # model.add(Dense(64))
+    # model.add(Activation("relu"))
     # model.add(Dropout(0.2))
 
     # model.add(Dense(64, activation="relu", kernel_initializer="he_normal"))
@@ -500,9 +500,9 @@ def build_model(env):
     # model.add(Dense(nb_actions, activation="linear"))
     model.add(Dense(nb_actions, activation="softmax"))
 
-    men_limit = 20000
-    batch_size = 8
-    nb_steps_warmup = 200
+    men_limit = 50000
+    batch_size = 32
+    nb_steps_warmup = 500
     # target_model_update = 1000
     target_model_update = 1e-3
     return model, channel, men_limit, batch_size, nb_steps_warmup, target_model_update

@@ -43,7 +43,8 @@ def train(model,
                    dueling_type='avg',
                    target_model_update=target_model_update,
                    policy=policy)
-    dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=['mae'])
+    # dqn.compile(Adam(lr=1e-3, clipnorm=1.), metrics=['mae'])
+    dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
     tb = TensorBoard(log_dir='./logs/' + name)
     history = dqn.fit(env, nb_steps=nb_steps, visualize=visualize, verbose=2,
