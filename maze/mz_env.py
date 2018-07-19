@@ -17,9 +17,9 @@ class MzEnv(gym.core.Env):
         self.MARK = -1.
         self.GOAL = 0.9
 
-        self.reward_move = -0.01
-        self.reward_hit_wall = -1.
-        self.reward_get_flag = 2.
+        self.reward_move = -0.05
+        self.reward_hit_wall = -3.
+        self.reward_get_flag = 5.
         self.reward_goal = 10.
 
         mz_data = MzData()
