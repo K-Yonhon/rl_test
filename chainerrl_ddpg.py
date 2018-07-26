@@ -19,8 +19,8 @@ obs_size = env.observation_space.shape[0]
 action_space = env.action_space
 action_size = action_space.n
 
-n_hidden_channels = 50
-n_hidden_layers = 3
+n_hidden_channels = 20
+n_hidden_layers = 2
 actor_lr = 1e-4
 critic_lr = 1e-3
 
@@ -44,8 +44,15 @@ opt_c.add_hook(chainer.optimizer.GradientClipping(1.0), 'hook_c')
 
 gamma = 0.95
 
+def random_action_func():
+    return gym.spaces.np_random.uniform(low=0, high=1, size=2).astype(np.float32)
+
+
 explorer = chainerrl.explorers.ConstantEpsilonGreedy(
-    epsilon=0.3, random_action_func=env.action_space.sample)
+    epsilon=0.3,
+    # random_action_func=env.action_space.sample
+    random_action_func=random_action_func
+)
 
 rbuf = replay_buffer.ReplayBuffer(capacity=10 ** 6)
 
@@ -57,7 +64,7 @@ def phi(obs):
 replay_start_size = 500
 update_interval = 1
 target_update_interval = 100
-minibatch_size = 32
+minibatch_size = 64
 soft_update_tau = 1e-2
 target_update_method = 'hard'
 n_update_times = 1
@@ -71,11 +78,10 @@ agent = DDPG(model, opt_a, opt_c, rbuf,
              soft_update_tau=soft_update_tau,
              n_times_update=n_update_times,
              phi=phi,
-             # gpu=args.gpu,
              minibatch_size=minibatch_size)
 
 
-n_episodes = 200
+n_episodes = 500
 max_episode_len = 200
 for i in range(1, n_episodes + 1):
     obs = env.reset()
@@ -87,7 +93,8 @@ for i in range(1, n_episodes + 1):
         # Uncomment to watch the behaviour
         # env.render()
         action = agent.act_and_train(obs, reward)
-        obs, reward, done, _ = env.step(action)
+        ai = np.argmax(action)
+        obs, reward, done, _ = env.step(ai)
         R += reward
         t += 1
     if i % 10 == 0:
@@ -105,7 +112,8 @@ for i in range(10):
     while not done and t < 200:
         env.render()
         action = agent.act(obs)
-        obs, r, done, _ = env.step(action)
+        ai = np.argmax(action)
+        obs, r, done, _ = env.step(ai)
         R += r
         t += 1
     print('test episode:', i, 'R:', R)
