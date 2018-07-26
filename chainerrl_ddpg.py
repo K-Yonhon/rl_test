@@ -32,7 +32,7 @@ pi = policies.FCDeterministicPolicy(
     obs_size, action_size=action_size,
     n_hidden_channels=n_hidden_channels,
     n_hidden_layers=n_hidden_layers,
-    min_action=action_space.low, max_action=action_space.high,
+    min_action=0, max_action=1,
     bound_action=True)
 model = DDPGModel(q_func=q_func, policy=pi)
 opt_a = optimizers.Adam(alpha=actor_lr)
